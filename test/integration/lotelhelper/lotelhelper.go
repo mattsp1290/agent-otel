@@ -126,21 +126,45 @@ func (h *Helper) QueryLogs(t testing.TB, service, since string) []LogRecord {
 
 func (h *Helper) WaitForTraces(t testing.TB, service string, minCount int, timeout time.Duration) []TraceRecord {
 	t.Helper()
+	return waitForRecords(t, service, minCount, timeout, h.Ingest, h.QueryTraces, h.Since, "traces")
+}
+
+func (h *Helper) WaitForMetrics(t testing.TB, service string, minCount int, timeout time.Duration) []MetricRecord {
+	t.Helper()
+	return waitForRecords(t, service, minCount, timeout, h.Ingest, h.QueryMetrics, h.Since, "metrics")
+}
+
+func (h *Helper) WaitForLogs(t testing.TB, service string, minCount int, timeout time.Duration) []LogRecord {
+	t.Helper()
+	return waitForRecords(t, service, minCount, timeout, h.Ingest, h.QueryLogs, h.Since, "logs")
+}
+
+func waitForRecords[T ~map[string]any](
+	t testing.TB,
+	service string,
+	minCount int,
+	timeout time.Duration,
+	ingest func(testing.TB),
+	query func(testing.TB, string, string) []T,
+	since func() string,
+	signal string,
+) []T {
+	t.Helper()
 	if timeout <= 0 {
 		timeout = 15 * time.Second
 	}
 	deadline := time.Now().Add(timeout)
 	backoff := 250 * time.Millisecond
-	var last []TraceRecord
+	var last []T
 	for {
-		h.Ingest(t)
-		last = h.QueryTraces(t, service, h.Since())
+		ingest(t)
+		last = query(t, service, since())
 		if len(last) >= minCount {
 			return last
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("lotelhelper: WaitForTraces(%q, %d, %s): timed out; last poll returned %d records",
-				service, minCount, timeout, len(last))
+			t.Fatalf("lotelhelper: WaitFor%s(%q, %d, %s): timed out; last poll returned %d records",
+				signal, service, minCount, timeout, len(last))
 			return last
 		}
 		time.Sleep(backoff)
