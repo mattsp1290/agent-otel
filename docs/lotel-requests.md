@@ -19,8 +19,9 @@ Verified on 2026-05-25 from this repository:
 ls -la /home/infra-admin/git/lotel/.agents /home/infra-admin/git/lotel/.agents/requests
 ```
 
-Result: `/home/infra-admin/git/lotel/.agents/requests/` does not currently
-exist, so read/write checks against the request directory cannot pass yet.
+Result at initial verification: `/home/infra-admin/git/lotel/.agents/requests/`
+did not exist, so read/write checks against the request directory could not
+pass yet.
 
 The `lotel` checkout already had unrelated local changes at verification time:
 
@@ -31,6 +32,30 @@ The `lotel` checkout already had unrelated local changes at verification time:
 ```
 
 No files in `/home/infra-admin/git/lotel` were changed for this verification.
+
+## Filed Requests
+
+### GenAI Query Support
+
+Filed on 2026-05-25:
+
+```text
+/home/infra-admin/git/lotel/.agents/requests/genai-query-support.md
+```
+
+Request summary:
+
+- Add a GenAI-aware query affordance for current `gen_ai.*` attributes emitted
+  by `agent-otel`.
+- Promote model-call fields such as `gen_ai.operation.name`,
+  `gen_ai.provider.name`, `gen_ai.request.model`,
+  `gen_ai.response.model`, `gen_ai.usage.input_tokens`, and
+  `gen_ai.usage.output_tokens` into a stable query surface.
+- Include shared fallback and availability keys:
+  `agent_otel.usage.available`, `agent_otel.provider.from`, and
+  `agent_otel.provider.to`.
+- Keep payload fields such as `gen_ai.input.messages` out of the first query
+  surface because payload capture is opt-in and redaction-sensitive.
 
 ## Creation Step
 
