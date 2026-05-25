@@ -31,6 +31,7 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 	if err != nil {
 		return noopProviders(opts, res), newShutdown(nil, nil), nil
 	}
+	traceExporter = composeTraceExporter(ctx, traceExporter, cfg.Traces, opts)
 	tracerProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithResource(res),
 		sdktrace.WithBatcher(traceExporter, traceBatchOptions(opts, cfg.Traces)...),
@@ -41,6 +42,7 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 		_ = tracerProvider.Shutdown(ctx)
 		return noopProviders(opts, res), newShutdown(nil, nil), nil
 	}
+	metricExporter = composeMetricExporter(ctx, metricExporter, cfg.Metrics, opts)
 	meterProvider := sdkmetric.NewMeterProvider(
 		sdkmetric.WithResource(res),
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, metricReaderOptions(opts, cfg.Metrics)...)),
@@ -52,6 +54,7 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 		_ = tracerProvider.Shutdown(ctx)
 		return noopProviders(opts, res), newShutdown(nil, nil), nil
 	}
+	logExporter = composeLogExporter(ctx, logExporter, cfg.Logs, opts)
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithResource(res),
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter, logBatchOptions(opts, cfg.Logs)...)),

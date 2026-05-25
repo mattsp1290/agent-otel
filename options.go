@@ -60,7 +60,8 @@ type DatadogPresetOption func(*DatadogPreset)
 
 // DevSinkConfig holds local development telemetry sink settings.
 type DevSinkConfig struct {
-	Enabled bool
+	Enabled  bool
+	Endpoint string
 }
 
 // InstrumentOptions controls helper instrument construction.
@@ -121,6 +122,16 @@ func WithDatadogHeaders(headers map[string]string) DatadogPresetOption {
 		}
 		for key, value := range headers {
 			preset.Headers[key] = value
+		}
+	}
+}
+
+// WithDevSink duplicates telemetry to a local lotel OTLP endpoint.
+func WithDevSink(lotelEndpoint string) Option {
+	return func(opts *Options) {
+		opts.DevSink = &DevSinkConfig{
+			Enabled:  true,
+			Endpoint: lotelEndpoint,
 		}
 	}
 }
