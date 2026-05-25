@@ -11,6 +11,9 @@ import (
 )
 
 func TestInitDisabledReturnsNoopProviders(t *testing.T) {
+	clearOTLPEnv(t)
+	t.Setenv("OTEL_EXPORTER_OTLP_TRACES_PROTOCOL", "http/json")
+
 	providers, shutdown, err := Init(context.Background(), Options{
 		Enabled:           false,
 		SkipGlobalInstall: true,
@@ -32,6 +35,7 @@ func TestInitDisabledReturnsNoopProviders(t *testing.T) {
 }
 
 func TestInitEnabledWithoutCollectorDoesNotPanic(t *testing.T) {
+	clearOTLPEnv(t)
 	providers, shutdown, err := Init(context.Background(), Options{
 		Enabled:           true,
 		SkipGlobalInstall: true,
@@ -59,6 +63,7 @@ func TestInitEnabledWithoutCollectorDoesNotPanic(t *testing.T) {
 }
 
 func TestInitBuildsResourceAttributes(t *testing.T) {
+	clearOTLPEnv(t)
 	providers, _, err := Init(context.Background(), Options{
 		Enabled:           false,
 		SkipGlobalInstall: true,

@@ -18,6 +18,12 @@ const defaultServiceName = "agent-otel"
 
 // Init initializes agent OpenTelemetry providers.
 func Init(ctx context.Context, opts Options) (*Providers, *Shutdown, error) {
+	if opts.Enabled {
+		if _, err := resolveConfig(opts, processEnv); err != nil {
+			return nil, nil, err
+		}
+	}
+
 	res, err := buildResource(ctx, opts)
 	if err != nil {
 		return nil, nil, err
