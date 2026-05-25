@@ -56,6 +56,13 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 		sdklog.WithResource(res),
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(logExporter, logBatchOptions(opts, cfg.Logs)...)),
 	)
+	instruments, err := newInstruments(meterProvider.Meter(instrumentationName), opts.Instruments)
+	if err != nil {
+		_ = loggerProvider.Shutdown(ctx)
+		_ = meterProvider.Shutdown(ctx)
+		_ = tracerProvider.Shutdown(ctx)
+		return nil, nil, err
+	}
 
 	providers := &Providers{
 		TracerProvider: tracerProvider,
@@ -64,7 +71,7 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 		Tracer:         tracerProvider.Tracer(instrumentationName),
 		Meter:          meterProvider.Meter(instrumentationName),
 		Logger:         loggerProvider.Logger(instrumentationName),
-		Instruments:    newInstruments(opts.Instruments),
+		Instruments:    instruments,
 		Resource:       res,
 	}
 

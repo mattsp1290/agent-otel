@@ -53,6 +53,7 @@ func noopProviders(opts Options, res *resource.Resource) *Providers {
 	tracerProvider := tracenoop.NewTracerProvider()
 	meterProvider := metricnoop.NewMeterProvider()
 	loggerProvider := lognoop.NewLoggerProvider()
+	instruments, _ := newInstruments(meterProvider.Meter(instrumentationName), opts.Instruments)
 
 	return &Providers{
 		TracerProvider: tracerProvider,
@@ -61,7 +62,7 @@ func noopProviders(opts Options, res *resource.Resource) *Providers {
 		Tracer:         tracerProvider.Tracer(instrumentationName),
 		Meter:          meterProvider.Meter(instrumentationName),
 		Logger:         loggerProvider.Logger(instrumentationName),
-		Instruments:    newInstruments(opts.Instruments),
+		Instruments:    instruments,
 		Resource:       res,
 	}
 }
