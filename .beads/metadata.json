@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "agent_otel",
+  "project_id": "949aef09-bd94-4775-bcca-7c1a7edf5270"
+}
