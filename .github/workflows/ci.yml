@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, labeled]
+  workflow_dispatch:
+  schedule:
+    # Non-default integration gate. Keeps lotel/integration coverage alive
+    # without making every push depend on optional local collector tooling.
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: go test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+
+      - name: go mod verify
+        run: go mod verify
+
+      - name: go test ./...
+        run: go test ./...
+
+  race:
+    name: go test -race
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+
+      - name: go test -race ./...
+        run: go test -race ./...
+
+  lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+
+      # Build the linter with the selected Go toolchain. Prebuilt
+      # golangci-lint binaries can reject this module's go directive when
+      # they were compiled by an older Go release.
+      - name: install golangci-lint
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2
+
+      - name: golangci-lint run ./...
+        run: golangci-lint run ./...
+
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-integration'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+          cache: true
+
+      - name: go test -tags=integration ./...
+        run: go test -tags=integration ./...
