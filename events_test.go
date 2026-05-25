@@ -6,8 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattsp1290/agent-otel/internal/otlptest"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattsp1290/agent-otel/internal/otlptest"
 )
 
 const secretPrompt = "SECRET_PROMPT_DO_NOT_EXPORT"

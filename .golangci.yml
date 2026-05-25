@@ -1,0 +1,80 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - revive
+    - misspell
+    - unconvert
+    - errorlint
+    - copyloopvar
+
+  settings:
+    govet:
+      enable-all: true
+      disable:
+        # Matches local-symphony: field ordering for smaller structs is not
+        # useful enough to churn public option/config types.
+        - fieldalignment
+    revive:
+      rules:
+        # Deviation from advisor: this package already has broad exported API
+        # docs debt from the extraction work. Keep lint usable now; tighten
+        # this once a dedicated public-doc cleanup can touch the API surface.
+        - name: exported
+          disabled: true
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
+
+  exclusions:
+    rules:
+      # Same test-only errcheck allowances as advisor: writes to in-memory
+      # buffers and deferred closes do not carry assertion-relevant errors.
+      - path: "_test\\.go"
+        linters: [errcheck]
+        text: "fmt\\.Fprintf?"
+      - path: "_test\\.go"
+        linters: [errcheck]
+        source: "defer.*\\.Close\\(\\)"
+      # Same revive allowance as advisor for one-off HTTP handlers and test
+      # callbacks that must match an interface signature.
+      - path: "_test\\.go"
+        linters: [revive]
+        text: "unused-parameter"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/mattsp1290/agent-otel
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+# Intentional deviations from local-symphony:
+# - run.go is omitted because golangci-lint binaries built with older Go
+#   releases reject a target above their build toolchain. CI should install a
+#   Go 1.26-built linter when that is available; until then the module's
+#   go.mod remains the source of truth for language version.
+# - revive's exported-doc rule is disabled until the extracted public API is
+#   documented consistently. Other revive rules stay available.
+# - bodyclose, rowserrcheck, and sqlclosecheck are app/backend-specific; this
+#   module has no SQL layer and only narrow test HTTP usage.
+# - gosec is left to CI security scanning for now. The current code has several
+#   deliberate test subprocess and listener patterns that would require broad
+#   exclusions before providing useful signal.

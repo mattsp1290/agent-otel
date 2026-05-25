@@ -25,10 +25,6 @@ func processEnv(name string) (string, bool) {
 	return os.LookupEnv(name)
 }
 
-func resolveProtocol(sig signal, explicit ExporterConfig, lookup lookupEnv) (protocol, field, value string) {
-	return resolveProtocolWithPreset(sig, explicit, nil, lookup)
-}
-
 func resolveProtocolWithPreset(sig signal, explicit ExporterConfig, preset *DatadogPreset, lookup lookupEnv) (protocol, field, value string) {
 	if strings.TrimSpace(explicit.Protocol) != "" {
 		return strings.TrimSpace(explicit.Protocol), optionField(sig, "protocol"), explicit.Protocol
@@ -46,10 +42,6 @@ func resolveProtocolWithPreset(sig signal, explicit ExporterConfig, preset *Data
 		}
 	}
 	return ProtocolGRPC, "default protocol", ProtocolGRPC
-}
-
-func resolveEndpoint(sig signal, explicit ExporterConfig, protocol string, lookup lookupEnv) (endpoint, field, value string) {
-	return resolveEndpointWithPreset(sig, explicit, protocol, nil, lookup)
 }
 
 func resolveEndpointWithPreset(sig signal, explicit ExporterConfig, protocol string, preset *DatadogPreset, lookup lookupEnv) (endpoint, field, value string) {
@@ -91,10 +83,6 @@ func resolveInsecure(sig signal, explicit ExporterConfig, endpoint string, looku
 		return parseBool(raw, false)
 	}
 	return false
-}
-
-func resolveHeaders(sig signal, explicit ExporterConfig, lookup lookupEnv) map[string]string {
-	return resolveHeadersWithPreset(sig, explicit, nil, lookup)
 }
 
 func resolveHeadersWithPreset(sig signal, explicit ExporterConfig, preset *DatadogPreset, lookup lookupEnv) map[string]string {

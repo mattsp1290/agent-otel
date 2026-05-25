@@ -19,7 +19,7 @@ func ExampleInit() {
 	if err != nil {
 		panic(err)
 	}
-	defer shutdown.Shutdown(context.Background())
+	defer func() { _ = shutdown.Shutdown(context.Background()) }()
 
 	ctx, span, err := agentotel.StartModelCall(ctx, providers.Tracer, agentotel.ModelCall{
 		OperationName: agentotel.GenAIOperationChat,
@@ -55,7 +55,7 @@ func ExampleWithDatadogPreset() {
 	if err != nil {
 		panic(err)
 	}
-	defer shutdown.Shutdown(context.Background())
+	defer func() { _ = shutdown.Shutdown(context.Background()) }()
 }
 
 func ExampleWithDevSink() {
@@ -67,5 +67,5 @@ func ExampleWithDevSink() {
 	if err != nil {
 		panic(err)
 	}
-	defer shutdown.Shutdown(context.Background())
+	defer func() { _ = shutdown.Shutdown(context.Background()) }()
 }

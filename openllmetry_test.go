@@ -4,9 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattsp1290/agent-otel/internal/otlptest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/mattsp1290/agent-otel/internal/otlptest"
 )
 
 func TestOpenLLMetryDefaultIsNativeOnly(t *testing.T) {

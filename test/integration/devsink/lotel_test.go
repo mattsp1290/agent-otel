@@ -8,11 +8,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel/log"
+
 	agentotel "github.com/mattsp1290/agent-otel"
 	"github.com/mattsp1290/agent-otel/internal/otlptest"
 	"github.com/mattsp1290/agent-otel/test/integration/lotelhelper"
-	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/log"
 )
 
 func TestWithDevSinkExportsGenAIToLotel(t *testing.T) {

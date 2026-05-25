@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattsp1290/agent-otel/internal/otlptest"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/metric"
@@ -17,6 +16,8 @@ import (
 	metricsv1 "go.opentelemetry.io/proto/otlp/collector/metrics/v1"
 	tracev1 "go.opentelemetry.io/proto/otlp/collector/trace/v1"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/mattsp1290/agent-otel/internal/otlptest"
 )
 
 func TestInitExportsAllSignalsOverGRPC(t *testing.T) {
