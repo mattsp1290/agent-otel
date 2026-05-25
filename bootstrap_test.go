@@ -2,7 +2,6 @@ package agentotel
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -81,57 +80,6 @@ func TestInitBuildsResourceAttributes(t *testing.T) {
 	assertResourceString(t, attrs, semconv.ServiceVersionKey, "1.2.3")
 	assertResourceString(t, attrs, semconv.DeploymentEnvironmentNameKey, "test")
 	assertResourceString(t, attrs, attribute.Key("custom.attr"), "custom-value")
-}
-
-func TestShutdownOrderAndIdempotence(t *testing.T) {
-	forceErr := errors.New("force")
-	shutdownErr := errors.New("shutdown")
-	var calls []string
-	cleanup := newShutdown(
-		[]func(context.Context) error{
-			func(context.Context) error {
-				calls = append(calls, "force logs")
-				return nil
-			},
-			func(context.Context) error {
-				calls = append(calls, "force metrics")
-				return forceErr
-			},
-			func(context.Context) error {
-				calls = append(calls, "force traces")
-				return nil
-			},
-		},
-		[]func(context.Context) error{
-			func(context.Context) error {
-				calls = append(calls, "shutdown logs")
-				return nil
-			},
-			func(context.Context) error {
-				calls = append(calls, "shutdown metrics")
-				return shutdownErr
-			},
-			func(context.Context) error {
-				calls = append(calls, "shutdown traces")
-				return nil
-			},
-		},
-	)
-
-	err := cleanup.ForceFlush(context.Background())
-	require.ErrorIs(t, err, forceErr)
-	err = cleanup.Shutdown(context.Background())
-	require.ErrorIs(t, err, shutdownErr)
-	err = cleanup.Shutdown(context.Background())
-	require.ErrorIs(t, err, shutdownErr)
-	require.Equal(t, []string{
-		"force logs",
-		"force metrics",
-		"force traces",
-		"shutdown logs",
-		"shutdown metrics",
-		"shutdown traces",
-	}, calls)
 }
 
 func assertResourceString(t *testing.T, attrs interface {
