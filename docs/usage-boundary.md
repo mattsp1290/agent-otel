@@ -153,6 +153,15 @@ the graph `Output` or an adjacent worker-local usage struct.
 
 Do not add an `agentotel/eino` adapter for the initial implementation.
 
+Post-migration decision: still do not add one. Advisor and symphony now both
+record telemetry through normalized `agentotel.Usage` values without stable
+duplicated extraction code that belongs in this module. Keeping extraction in
+the consuming applications preserves their different contracts: Advisor owns a
+single provider-call response boundary, while symphony owns graph output,
+stream concatenation, and runtime accumulation. The root package import guard
+in `usage_test.go::TestRootPackageDoesNotImportEino` remains the enforcement
+point for this decision.
+
 Reasons:
 
 - Advisor and symphony use Eino at different layers. Advisor's public provider
