@@ -1,11 +1,10 @@
 # Cardinality Runtime and Lint Enforcement
 
-`agent-otel` must enforce metric cardinality before attributes reach OTel
+`agent-otel` enforces metric cardinality before attributes reach OTel
 instruments. Symphony's current `internal/obs/cardinality.go` is the right
-source pattern, but it is test-only: callers can still invoke raw OTel
+source pattern, but it was test-only: callers could still invoke raw OTel
 instruments with arbitrary `metric.WithAttributes(...)`. The shared module
-should make safe wrapper recorders the normal public API and keep raw
-instruments internal.
+makes safe wrapper recorders the normal public API.
 
 ## Budget Source
 
@@ -20,17 +19,17 @@ type MetricSpec struct {
 }
 ```
 
-The initial generic model-call budget should cover:
+The built-in model-call budget covers:
 
 | Metric | Allowed keys |
 | --- | --- |
-| `gen_ai.client.operation.duration` or finalized model-latency metric | `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.operation.name`, `error.type` |
-| `gen_ai.client.token.usage` or finalized token metric | `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.operation.name`, `gen_ai.token.type` |
-| errors-by-provider counter | `gen_ai.provider.name`, `error.type` |
-| fallback-engaged counter | `gen_ai.provider.name`, `agent_otel.provider.from`, `agent_otel.provider.to` |
+| `gen_ai.client.operation.duration` | `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.operation.name`, `error.type` |
+| `gen_ai.client.token.usage` | `gen_ai.provider.name`, `gen_ai.request.model`, `gen_ai.operation.name`, `gen_ai.token.type` |
+| `agent_otel.provider.errors` | `gen_ai.provider.name`, `error.type` |
+| `agent_otel.fallback.engaged` | `gen_ai.provider.name`, `agent_otel.provider.from`, `agent_otel.provider.to` |
 
-The exact GenAI metric names must come from `docs/genai-mapping.md`; this doc
-defines enforcement behavior, not final semantic-convention strings.
+The exact GenAI metric names are pinned in `genai_attrs.go` and summarized in
+`docs/genai-mapping.md`.
 
 Globally prohibited metric keys:
 
@@ -52,35 +51,43 @@ Expose typed recorders instead of raw OTel instruments:
 
 ```go
 type Instruments struct {
-	// unexported OTel instruments
+	ModelLatency       metric.Float64Histogram
+	UsageInputTokens   metric.Int64Histogram
+	UsageOutputTokens  metric.Int64Histogram
+	ErrorsByProvider   metric.Int64Counter
+	FallbackEngaged    metric.Int64Counter
 }
 
-type ModelLabels struct {
-	Provider  string
-	Model     string
-	Operation string
-	ErrorType string
+type ModelMetricLabels struct {
+	OperationName string
+	ProviderName  string
+	RequestModel  string
+	ErrorType     string
 }
 
-type FallbackLabels struct {
-	Provider string
-	From     string
-	To       string
+type ProviderErrorLabels struct {
+	ProviderName string
+	ErrorType    string
 }
 
-func (i *Instruments) RecordModelLatency(ctx context.Context, seconds float64, labels ModelLabels)
-func (i *Instruments) RecordUsage(ctx context.Context, usage Usage, labels ModelLabels)
-func (i *Instruments) AddProviderError(ctx context.Context, labels ModelLabels)
-func (i *Instruments) AddFallbackEngaged(ctx context.Context, labels FallbackLabels)
+type Fallback struct {
+	ProviderName string
+	FromProvider string
+	ToProvider   string
+	Attributes   []attribute.KeyValue
+}
+
+func (i *Instruments) RecordModelLatency(ctx context.Context, seconds float64, labels ModelMetricLabels) error
+func (i *Instruments) RecordUsage(ctx context.Context, usage Usage, labels ModelMetricLabels) error
+func (i *Instruments) RecordProviderError(ctx context.Context, labels ProviderErrorLabels) error
+func (i *Instruments) RecordFallbackEngaged(ctx context.Context, fallback Fallback) error
 ```
 
 Wrapper methods construct the OTel attributes internally, run the cardinality
-filter, and then call the underlying OTel instrument. Callers should not receive
-exported `metric.Int64Counter`, `metric.Int64Histogram`, or similar handles for
-the built-in instruments.
+filter, and then call the underlying OTel instrument.
 
-If custom project metrics are needed, expose a registration API that requires
-an allowlist:
+If custom project metrics are needed later, add a registration API that requires
+an allowlist, such as:
 
 ```go
 func (i *Instruments) RegisterInt64Counter(spec MetricSpec) (*Int64CounterRecorder, error)

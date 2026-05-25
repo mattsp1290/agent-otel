@@ -36,15 +36,13 @@ values before constructing `Usage`.
 
 ## Core API
 
-Core should expose helpers that consume normalized usage:
+Core exposes helpers that consume normalized usage:
 
 ```go
-func RecordUsage(ctx context.Context, usage Usage, labels ModelLabels)
-func SetUsageSpanAttributes(span trace.Span, usage Usage)
+func UsageSpanAttributes(usage Usage) ([]attribute.KeyValue, error)
+func UsageMetricPoints(usage Usage) ([]UsageMetricPoint, error)
+func (i *Instruments) RecordUsage(ctx context.Context, usage Usage, labels ModelMetricLabels) error
 ```
-
-The exact helper names can be finalized during implementation, but the contract
-is fixed:
 
 - Helpers accept `agentotel.Usage`, not `schema.Message`, `schema.TokenUsage`,
   provider response structs, or stream chunks.
@@ -97,7 +95,7 @@ agentUsage := agentotel.Usage{
 	OutputTokens: int64(usage.OutputTokens),
 	Available:    usage.Available,
 }
-agentotel.RecordUsage(ctx, agentUsage, labels)
+_ = instruments.RecordUsage(ctx, agentUsage, labels)
 ```
 
 The advisor `Provider.Advise` interface should continue to return advisor's

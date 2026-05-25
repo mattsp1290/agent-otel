@@ -93,7 +93,7 @@ type OpenLLMetryCompatOptions struct {
 func WithOpenLLMetryCompat(opts ...OpenLLMetryCompatOptions) Option
 ```
 
-`SpanKind` should be a bounded enum:
+`SpanKind` is a bounded enum:
 
 ```go
 const (

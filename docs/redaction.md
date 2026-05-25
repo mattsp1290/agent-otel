@@ -1,7 +1,7 @@
 # Redaction and Payload Capture
 
-`agent-otel` must treat prompt, completion, tool, and system-instruction
-payloads as sensitive by default. The library should emit GenAI spans and
+`agent-otel` treats prompt, completion, tool, and system-instruction
+payloads as sensitive by default. The library emits GenAI spans and
 metrics without payload bodies unless the caller explicitly opts in to content
 capture.
 
@@ -28,8 +28,8 @@ also opt-in.
 
 ## Public Hook
 
-Implement a redaction hook that receives structured content before any payload
-is attached to a span event:
+The redaction hook receives structured content before any payload is attached
+to a span event:
 
 ```go
 type PayloadKind string
@@ -60,16 +60,15 @@ provide it. If the caller only has a JSON string, the implementation may carry
 that string, but tests should prefer structured values for input and output
 messages.
 
-Provide a default redactor that drops all payload values. Payload capture should
-require both capture opt-in and a caller-selected redactor:
+`DropAllPayloadsRedactor` drops payload values. `WithPayloadCapture(nil)` uses
+that redactor, so payload capture still requires explicit opt-in:
 
 ```go
 WithPayloadCapture(redactor PromptRedactor)
 ```
 
-If the project chooses to provide a convenience `AllowUnredactedPayloads()`
-redactor for local debugging, it must be named to make the risk explicit and
-must not be selected by any preset.
+`AllowUnredactedPayloadsRedactor` exists for local debugging and is never
+selected by any preset.
 
 ## Ordering
 

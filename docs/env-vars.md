@@ -185,7 +185,8 @@ Dev sink behavior:
 
 - Missing local `lotel` fails open.
 - Primary exporter failures follow normal fail-open rules.
-- Dev-sink errors are logged once without headers or payloads.
+- Dev-sink export, flush, and shutdown errors are ignored after the primary
+  exporter has been called.
 - `ForceFlush` and `Shutdown` drain the dev sink when it was created.
 
 ## Validation

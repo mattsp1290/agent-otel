@@ -1,9 +1,9 @@
 # Datadog LLM Observability
 
-`agent-otel` should emit vendor-neutral OpenTelemetry GenAI spans by default.
+`agent-otel` emits vendor-neutral OpenTelemetry GenAI spans by default.
 Datadog LLM Observability can ingest those spans when they follow the OTel
-GenAI 1.37+ semantic conventions. A Datadog preset may configure exporter
-defaults and headers, but Datadog-specific behavior must remain optional.
+GenAI 1.37+ semantic conventions. The Datadog preset configures exporter
+defaults and headers only when callers opt in.
 
 Verified on 2026-05-25 against Datadog's current OpenTelemetry LLM
 Observability documentation:
@@ -76,7 +76,7 @@ completion capture by itself.
 
 ## WithDatadogPreset
 
-`WithDatadogPreset()` should set Datadog-friendly defaults without making the
+`WithDatadogPreset()` sets Datadog-friendly defaults without making the
 core library vendor-specific:
 
 ```go
