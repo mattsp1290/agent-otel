@@ -23,6 +23,7 @@ type Providers struct {
 	Resource    *resource.Resource
 
 	openLLMetryCompat *OpenLLMetryCompatOptions
+	payloadCapture    *PayloadCaptureOptions
 }
 
 // Instruments groups package-owned telemetry instruments.

@@ -74,6 +74,7 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 		Instruments:       instruments,
 		Resource:          res,
 		openLLMetryCompat: opts.OpenLLMetryCompat,
+		payloadCapture:    opts.PayloadCapture,
 	}
 
 	shutdown := newShutdown(

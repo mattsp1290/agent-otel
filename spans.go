@@ -20,6 +20,7 @@ type ModelCall struct {
 	ResponseModel string
 	Usage         Usage
 	Attributes    []attribute.KeyValue
+	Payloads      []PromptPayload
 }
 
 // AgentOperation describes a GenAI agent operation span.
@@ -45,10 +46,10 @@ type Fallback struct {
 
 // StartModelCall starts a GenAI model-call span with standard attributes.
 func StartModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, opts ...trace.SpanStartOption) (context.Context, trace.Span, error) {
-	return startModelCall(ctx, tracer, call, nil, opts...)
+	return startModelCall(ctx, tracer, call, nil, nil, opts...)
 }
 
-func startModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, compat *OpenLLMetryCompatOptions, opts ...trace.SpanStartOption) (context.Context, trace.Span, error) {
+func startModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, compat *OpenLLMetryCompatOptions, capture *PayloadCaptureOptions, opts ...trace.SpanStartOption) (context.Context, trace.Span, error) {
 	if tracer == nil {
 		return ctx, nil, ErrNilTracer
 	}
@@ -59,6 +60,9 @@ func startModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, co
 	attrs = append(attrs, openLLMetryModelCallAttributes(call, compat)...)
 	opts = append([]trace.SpanStartOption{trace.WithAttributes(attrs...)}, opts...)
 	spanCtx, span := tracer.Start(ctx, modelCallSpanName(call), opts...)
+	if err := attachPromptPayloadEvent(ctx, span, call, capture); err != nil {
+		return spanCtx, span, err
+	}
 	return spanCtx, span, nil
 }
 
@@ -115,7 +119,7 @@ func (p *Providers) StartModelCall(ctx context.Context, call ModelCall, opts ...
 	if p == nil {
 		return ctx, nil, ErrNilTracer
 	}
-	return startModelCall(ctx, p.Tracer, call, p.openLLMetryCompat, opts...)
+	return startModelCall(ctx, p.Tracer, call, p.openLLMetryCompat, p.payloadCapture, opts...)
 }
 
 // StartAgentOperation starts a GenAI agent operation span with this provider's tracer.

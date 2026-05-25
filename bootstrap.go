@@ -65,6 +65,7 @@ func noopProviders(opts Options, res *resource.Resource) *Providers {
 		Instruments:       instruments,
 		Resource:          res,
 		openLLMetryCompat: opts.OpenLLMetryCompat,
+		payloadCapture:    opts.PayloadCapture,
 	}
 }
 

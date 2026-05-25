@@ -32,6 +32,7 @@ type Options struct {
 	Instruments   InstrumentOptions
 
 	OpenLLMetryCompat *OpenLLMetryCompatOptions
+	PayloadCapture    *PayloadCaptureOptions
 }
 
 // ExporterConfig describes an OTLP exporter endpoint.
