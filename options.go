@@ -30,6 +30,8 @@ type Options struct {
 	DatadogPreset *DatadogPreset
 	DevSink       *DevSinkConfig
 	Instruments   InstrumentOptions
+
+	OpenLLMetryCompat *OpenLLMetryCompatOptions
 }
 
 // ExporterConfig describes an OTLP exporter endpoint.

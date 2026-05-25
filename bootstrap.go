@@ -56,14 +56,15 @@ func noopProviders(opts Options, res *resource.Resource) *Providers {
 	instruments, _ := newInstruments(meterProvider.Meter(instrumentationName), opts.Instruments)
 
 	return &Providers{
-		TracerProvider: tracerProvider,
-		MeterProvider:  meterProvider,
-		LoggerProvider: loggerProvider,
-		Tracer:         tracerProvider.Tracer(instrumentationName),
-		Meter:          meterProvider.Meter(instrumentationName),
-		Logger:         loggerProvider.Logger(instrumentationName),
-		Instruments:    instruments,
-		Resource:       res,
+		TracerProvider:    tracerProvider,
+		MeterProvider:     meterProvider,
+		LoggerProvider:    loggerProvider,
+		Tracer:            tracerProvider.Tracer(instrumentationName),
+		Meter:             meterProvider.Meter(instrumentationName),
+		Logger:            loggerProvider.Logger(instrumentationName),
+		Instruments:       instruments,
+		Resource:          res,
+		openLLMetryCompat: opts.OpenLLMetryCompat,
 	}
 }
 

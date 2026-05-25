@@ -45,6 +45,10 @@ type Fallback struct {
 
 // StartModelCall starts a GenAI model-call span with standard attributes.
 func StartModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, opts ...trace.SpanStartOption) (context.Context, trace.Span, error) {
+	return startModelCall(ctx, tracer, call, nil, opts...)
+}
+
+func startModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, compat *OpenLLMetryCompatOptions, opts ...trace.SpanStartOption) (context.Context, trace.Span, error) {
 	if tracer == nil {
 		return ctx, nil, ErrNilTracer
 	}
@@ -52,6 +56,7 @@ func StartModelCall(ctx context.Context, tracer trace.Tracer, call ModelCall, op
 	if err != nil {
 		return ctx, nil, err
 	}
+	attrs = append(attrs, openLLMetryModelCallAttributes(call, compat)...)
 	opts = append([]trace.SpanStartOption{trace.WithAttributes(attrs...)}, opts...)
 	spanCtx, span := tracer.Start(ctx, modelCallSpanName(call), opts...)
 	return spanCtx, span, nil
@@ -110,7 +115,7 @@ func (p *Providers) StartModelCall(ctx context.Context, call ModelCall, opts ...
 	if p == nil {
 		return ctx, nil, ErrNilTracer
 	}
-	return StartModelCall(ctx, p.Tracer, call, opts...)
+	return startModelCall(ctx, p.Tracer, call, p.openLLMetryCompat, opts...)
 }
 
 // StartAgentOperation starts a GenAI agent operation span with this provider's tracer.

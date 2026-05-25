@@ -65,14 +65,15 @@ func buildOTLPProviders(ctx context.Context, cfg resolvedConfig, opts Options, r
 	}
 
 	providers := &Providers{
-		TracerProvider: tracerProvider,
-		MeterProvider:  meterProvider,
-		LoggerProvider: loggerProvider,
-		Tracer:         tracerProvider.Tracer(instrumentationName),
-		Meter:          meterProvider.Meter(instrumentationName),
-		Logger:         loggerProvider.Logger(instrumentationName),
-		Instruments:    instruments,
-		Resource:       res,
+		TracerProvider:    tracerProvider,
+		MeterProvider:     meterProvider,
+		LoggerProvider:    loggerProvider,
+		Tracer:            tracerProvider.Tracer(instrumentationName),
+		Meter:             meterProvider.Meter(instrumentationName),
+		Logger:            loggerProvider.Logger(instrumentationName),
+		Instruments:       instruments,
+		Resource:          res,
+		openLLMetryCompat: opts.OpenLLMetryCompat,
 	}
 
 	shutdown := newShutdown(
