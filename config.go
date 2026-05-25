@@ -81,19 +81,19 @@ func resolveConfig(opts Options, lookup lookupEnv) (resolvedConfig, error) {
 }
 
 func resolveExporterConfig(sig signal, explicit ExporterConfig, opts Options, lookup lookupEnv) (resolvedExporterConfig, error) {
-	protocol, protocolField, protocolValue := resolveProtocol(sig, explicit, lookup)
+	protocol, protocolField, protocolValue := resolveProtocolWithPreset(sig, explicit, opts.DatadogPreset, lookup)
 	if err := validateProtocol(protocolField, protocolValue, protocol); err != nil {
 		return resolvedExporterConfig{}, err
 	}
 
-	endpoint, endpointField, endpointValue := resolveEndpoint(sig, explicit, protocol, lookup)
+	endpoint, endpointField, endpointValue := resolveEndpointWithPreset(sig, explicit, protocol, opts.DatadogPreset, lookup)
 	insecure := resolveInsecure(sig, explicit, endpoint, lookup)
 	normalizedEndpoint, normalizedInsecure, err := normalizeEndpointForProtocol(endpointField, endpointValue, endpoint, protocol, insecure)
 	if err != nil {
 		return resolvedExporterConfig{}, err
 	}
 
-	headers := resolveHeaders(sig, explicit, lookup)
+	headers := resolveHeadersWithPreset(sig, explicit, opts.DatadogPreset, lookup)
 	timeout, err := resolveTimeout(sig, explicit, opts, lookup)
 	if err != nil {
 		return resolvedExporterConfig{}, err

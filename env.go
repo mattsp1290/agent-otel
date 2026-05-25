@@ -26,6 +26,10 @@ func processEnv(name string) (string, bool) {
 }
 
 func resolveProtocol(sig signal, explicit ExporterConfig, lookup lookupEnv) (protocol, field, value string) {
+	return resolveProtocolWithPreset(sig, explicit, nil, lookup)
+}
+
+func resolveProtocolWithPreset(sig signal, explicit ExporterConfig, preset *DatadogPreset, lookup lookupEnv) (protocol, field, value string) {
 	if strings.TrimSpace(explicit.Protocol) != "" {
 		return strings.TrimSpace(explicit.Protocol), optionField(sig, "protocol"), explicit.Protocol
 	}
@@ -35,10 +39,20 @@ func resolveProtocol(sig signal, explicit ExporterConfig, lookup lookupEnv) (pro
 	if raw, ok := lookup(EnvOTLPProtocol); ok && strings.TrimSpace(raw) != "" {
 		return strings.TrimSpace(raw), EnvOTLPProtocol, raw
 	}
+	if sig == signalTraces {
+		_, _, presetProtocol := datadogTraceDefaults(preset, lookup)
+		if presetProtocol != "" {
+			return presetProtocol, "Datadog preset protocol", presetProtocol
+		}
+	}
 	return ProtocolGRPC, "default protocol", ProtocolGRPC
 }
 
 func resolveEndpoint(sig signal, explicit ExporterConfig, protocol string, lookup lookupEnv) (endpoint, field, value string) {
+	return resolveEndpointWithPreset(sig, explicit, protocol, nil, lookup)
+}
+
+func resolveEndpointWithPreset(sig signal, explicit ExporterConfig, protocol string, preset *DatadogPreset, lookup lookupEnv) (endpoint, field, value string) {
 	if strings.TrimSpace(explicit.Endpoint) != "" {
 		return strings.TrimSpace(explicit.Endpoint), optionField(sig, "endpoint"), explicit.Endpoint
 	}
@@ -47,6 +61,12 @@ func resolveEndpoint(sig signal, explicit ExporterConfig, protocol string, looku
 	}
 	if raw, ok := lookup(EnvOTLPEndpoint); ok && strings.TrimSpace(raw) != "" {
 		return strings.TrimSpace(raw), EnvOTLPEndpoint, raw
+	}
+	if sig == signalTraces {
+		presetEndpoint, _, _ := datadogTraceDefaults(preset, lookup)
+		if strings.TrimSpace(presetEndpoint) != "" {
+			return strings.TrimSpace(presetEndpoint), "Datadog preset endpoint", presetEndpoint
+		}
 	}
 	if protocol == ProtocolHTTPProtobuf {
 		return defaultHTTPEndpoint, "default endpoint", defaultHTTPEndpoint
@@ -74,14 +94,22 @@ func resolveInsecure(sig signal, explicit ExporterConfig, endpoint string, looku
 }
 
 func resolveHeaders(sig signal, explicit ExporterConfig, lookup lookupEnv) map[string]string {
+	return resolveHeadersWithPreset(sig, explicit, nil, lookup)
+}
+
+func resolveHeadersWithPreset(sig signal, explicit ExporterConfig, preset *DatadogPreset, lookup lookupEnv) map[string]string {
 	if len(explicit.Headers) > 0 {
 		return cloneHeaders(explicit.Headers)
 	}
-	if raw, ok := lookup(perSignalEnv(sig, "HEADERS")); ok {
+	if raw, ok := lookup(perSignalEnv(sig, "HEADERS")); ok && strings.TrimSpace(raw) != "" {
 		return parseHeaders(raw)
 	}
-	if raw, ok := lookup(EnvOTLPHeaders); ok {
+	if raw, ok := lookup(EnvOTLPHeaders); ok && strings.TrimSpace(raw) != "" {
 		return parseHeaders(raw)
+	}
+	if sig == signalTraces {
+		_, headers, _ := datadogTraceDefaults(preset, lookup)
+		return headers
 	}
 	return nil
 }

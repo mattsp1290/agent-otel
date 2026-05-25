@@ -160,6 +160,7 @@ type httpOTLPReceiver struct {
 	traces  []*tracev1.ExportTraceServiceRequest
 	metrics []*metricsv1.ExportMetricsServiceRequest
 	logs    []*logsv1.ExportLogsServiceRequest
+	headers []http.Header
 }
 
 type httpOTLPSnapshot struct {
@@ -194,6 +195,12 @@ func (r *httpOTLPReceiver) Snapshot() httpOTLPSnapshot {
 	}
 }
 
+func (r *httpOTLPReceiver) TraceHeaders() []http.Header {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return append([]http.Header(nil), r.headers...)
+}
+
 func (r *httpOTLPReceiver) WaitFor(t *testing.T, want func(httpOTLPSnapshot) bool) httpOTLPSnapshot {
 	t.Helper()
 	deadline := time.After(2 * time.Second)
@@ -217,6 +224,7 @@ func (r *httpOTLPReceiver) handleTraces(w http.ResponseWriter, req *http.Request
 	if decodeOTLPHTTP(w, req, &exportReq) {
 		r.mu.Lock()
 		r.traces = append(r.traces, &exportReq)
+		r.headers = append(r.headers, req.Header.Clone())
 		r.mu.Unlock()
 	}
 }
