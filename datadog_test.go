@@ -1,6 +1,7 @@
 package agentotel
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -120,6 +121,7 @@ func TestDatadogPresetOnWireHeadersAndGenAIAttrs(t *testing.T) {
 
 	providers, shutdown, err := Init(t.Context(), opts)
 	require.NoError(t, err)
+	t.Cleanup(func() { _ = shutdown.Shutdown(context.Background()) })
 	_, span, err := providers.StartModelCall(t.Context(), ModelCall{
 		OperationName: GenAIOperationChat,
 		ProviderName:  "openai",
