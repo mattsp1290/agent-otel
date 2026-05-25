@@ -18,8 +18,11 @@ const defaultServiceName = "agent-otel"
 
 // Init initializes agent OpenTelemetry providers.
 func Init(ctx context.Context, opts Options) (*Providers, *Shutdown, error) {
+	var cfg resolvedConfig
 	if opts.Enabled {
-		if _, err := resolveConfig(opts, processEnv); err != nil {
+		var err error
+		cfg, err = resolveConfig(opts, processEnv)
+		if err != nil {
 			return nil, nil, err
 		}
 	}
@@ -31,6 +34,13 @@ func Init(ctx context.Context, opts Options) (*Providers, *Shutdown, error) {
 
 	providers := noopProviders(opts, res)
 	shutdown := newShutdown(nil, nil)
+	if opts.Enabled {
+		var err error
+		providers, shutdown, err = buildOTLPProviders(ctx, cfg, opts, res)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
 
 	if !opts.SkipGlobalInstall {
 		installGlobalProviders(providers)
